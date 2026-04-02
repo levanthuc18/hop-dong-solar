@@ -38,7 +38,7 @@
     <!-- NỘI DUNG CHÍNH (ẨN KHI CHƯA NHẬP MK) -->
     <div id="mainContent" class="max-w-5xl mx-auto hidden opacity-0 transition-opacity duration-700">
         <header class="mb-6 flex justify-between items-center">
-            <h1 class="text-2xl font-black text-slate-800 uppercase tracking-tighter">Solar Doc v3.3</h1>
+            <h1 class="text-2xl font-black text-slate-800 uppercase tracking-tighter">Solar Doc v3.4</h1>
             <button onclick="location.reload()" class="text-[10px] font-bold text-slate-400 border border-slate-300 px-3 py-1 rounded-full hover:bg-slate-200 transition-colors">ĐĂNG XUẤT</button>
         </header>
 
@@ -66,7 +66,17 @@
             </div>
 
             <div class="space-y-6">
-                <div class="card bg-slate-900 text-white min-h-[400px] flex flex-col shadow-2xl">
+                <!-- PHẦN ĐẶT TÊN FILE -->
+                <div class="card border-l-4 border-l-purple-500">
+                    <div class="input-group">
+                        <label>3. Tên file khi tải về (Không cần đuôi .docx)</label>
+                        <input type="text" id="customFileName" placeholder="Ví dụ: Hop_dong_anh_Thanh_Gia_Lam" class="bg-purple-50 border-purple-200">
+                        <p class="text-[9px] text-slate-400 mt-1 italic">* Để trống sẽ tự đặt theo tên khách hàng.</p>
+                    </div>
+                </div>
+
+                <!-- XEM TRƯỚC -->
+                <div class="card bg-slate-900 text-white min-h-[350px] flex flex-col shadow-2xl">
                     <div class="flex justify-between items-center mb-6">
                         <h2 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Xem trước thanh toán</h2>
                         <button id="generateBtn" class="bg-blue-600 hover:bg-blue-500 px-5 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center shadow-lg">
@@ -99,8 +109,8 @@
     </div>
 
     <script>
-        // MẬT KHẨU TRUY CẬP (Bạn có thể đổi số này thành bất cứ thứ gì bạn muốn)
-        const MY_PASSWORD = "thuchau"; 
+        // MẬT KHẨU TRUY CẬP
+        const MY_PASSWORD = "123"; 
 
         document.getElementById('loginBtn').onclick = function() {
             const pin = document.getElementById('passInput').value;
@@ -115,7 +125,6 @@
             }
         };
 
-        // Nhấn Enter để đăng nhập
         document.getElementById('passInput').onkeydown = (e) => { if(e.key === "Enter") document.getElementById('loginBtn').click(); };
 
         function docSoTiengViet(number) {
@@ -170,9 +179,14 @@
                     const doc = new window.docxtemplater(zip, { paragraphLoop: true, linebreaks: true });
                     const total = parseFloat(document.getElementById('totalValue').value) || 0;
                     const d = document.getElementById('contractDate').value ? new Date(document.getElementById('contractDate').value) : new Date();
+                    
+                    const customerNameRaw = document.getElementById('customerName').value || "Khach_hang";
+                    const fileNameInput = document.getElementById('customFileName').value.trim();
+                    const finalFileName = fileNameInput ? fileNameInput : `HD_Solar_${customerNameRaw}`;
+
                     doc.setData({
                         contractNo: document.getElementById('contractNo').value,
-                        customerName: document.getElementById('customerName').value.toUpperCase(),
+                        customerName: customerNameRaw.toUpperCase(),
                         cccd: document.getElementById('cccd').value,
                         phone: document.getElementById('phone').value,
                         address: document.getElementById('address').value,
@@ -187,7 +201,7 @@
                         year: d.getFullYear()
                     });
                     doc.render();
-                    saveAs(doc.getZip().generate({ type: "blob" }), `HD_Solar_${document.getElementById('customerName').value}.docx`);
+                    saveAs(doc.getZip().generate({ type: "blob" }), `${finalFileName}.docx`);
                     status.innerText = "THÀNH CÔNG!";
                     status.className = "mt-4 text-[10px] text-center p-2 rounded bg-green-900 text-green-200 block";
                 } catch (err) {
