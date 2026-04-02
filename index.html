@@ -3,274 +3,203 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xuất Hợp Đồng Solar Tự Động</title>
+    <title>Hệ thống Hợp đồng Solar - Bảo mật</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Thư viện xử lý Word - CDN ổn định -->
     <script src="https://cdn.jsdelivr.net/npm/pizzip@3.1.4/dist/pizzip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/docxtemplater@3.37.2/build/docxtemplater.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
-    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
-        .input-group label { @apply block text-xs font-bold text-gray-500 uppercase mb-1 tracking-wider; }
-        .input-group input, .input-group textarea { @apply w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white shadow-sm; }
-        .card { @apply bg-white p-6 rounded-2xl shadow-md border border-gray-100; }
-        .step-tag { @apply px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-[10px] font-bold mr-2; }
+        .input-group label { @apply block text-[10px] font-bold text-gray-500 uppercase mb-1 tracking-wider; }
+        .input-group input, .input-group textarea { @apply w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-white text-sm shadow-sm; }
+        .card { @apply bg-white p-5 rounded-2xl shadow-sm border border-gray-100; }
+        #authOverlay { background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); }
     </style>
 </head>
 <body class="p-4 md:p-8">
-    <div class="max-w-6xl mx-auto">
-        <header class="mb-8 border-b pb-6 flex justify-between items-end">
-            <div>
-                <h1 class="text-3xl font-black text-slate-800 uppercase tracking-tight">Auto Doc Solar</h1>
-                <p class="text-slate-500 text-sm">Quản lý thanh toán 20% - 80% tự động</p>
+
+    <!-- MÀN HÌNH KHÓA MẬT KHẨU -->
+    <div id="authOverlay" class="fixed inset-0 z-50 flex items-center justify-center p-6">
+        <div class="bg-white p-8 rounded-3xl shadow-2xl max-w-sm w-full text-center">
+            <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
             </div>
-            <div class="text-right hidden md:block">
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Version 3.3 - Mobile Ready</span>
-            </div>
+            <h2 class="text-xl font-black text-slate-800 mb-2 uppercase">Yêu cầu truy cập</h2>
+            <p class="text-slate-500 text-sm mb-6">Vui lòng nhập mật khẩu để sử dụng công cụ xuất hợp đồng.</p>
+            <input type="password" id="passInput" placeholder="Nhập mật khẩu..." class="w-full p-4 border border-slate-200 rounded-2xl mb-4 text-center text-lg focus:ring-2 focus:ring-blue-500 outline-none">
+            <button id="loginBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl transition-all shadow-lg">ĐĂNG NHẬP</button>
+            <p id="errorMsg" class="text-red-500 text-xs mt-4 hidden">Mật khẩu không chính xác!</p>
+        </div>
+    </div>
+
+    <!-- NỘI DUNG CHÍNH (ẨN KHI CHƯA NHẬP MK) -->
+    <div id="mainContent" class="max-w-5xl mx-auto hidden opacity-0 transition-opacity duration-700">
+        <header class="mb-6 flex justify-between items-center">
+            <h1 class="text-2xl font-black text-slate-800 uppercase tracking-tighter">Solar Doc v3.3</h1>
+            <button onclick="location.reload()" class="text-[10px] font-bold text-slate-400 border border-slate-300 px-3 py-1 rounded-full hover:bg-slate-200 transition-colors">ĐĂNG XUẤT</button>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <!-- CỘT 1: NHẬP LIỆU -->
-            <div class="lg:col-span-5 space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="space-y-6">
                 <div class="card border-t-4 border-t-orange-500">
-                    <h2 class="font-bold text-orange-600 mb-4 flex items-center uppercase text-sm tracking-widest">
-                        <span class="step-tag">BƯỚC 1</span> Tải file Word mẫu
-                    </h2>
-                    <div class="p-4 border-2 border-dashed border-gray-200 rounded-xl hover:border-orange-300 transition-colors">
-                        <input type="file" id="templateUpload" accept=".docx" class="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100 cursor-pointer w-full">
-                    </div>
+                    <label class="block text-xs font-black text-orange-600 uppercase mb-3 italic">1. Tải file Word mẫu (.docx)</label>
+                    <input type="file" id="templateUpload" accept=".docx" class="text-xs w-full file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-orange-50 file:text-orange-700 cursor-pointer">
                 </div>
 
-                <div class="card border-t-4 border-t-blue-500">
-                    <h2 class="font-bold text-blue-600 mb-4 flex items-center uppercase text-sm tracking-widest">
-                        <span class="step-tag">BƯỚC 2</span> Nhập thông tin hợp đồng
-                    </h2>
-                    <div class="space-y-4">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="input-group">
-                                <label>Số Hợp đồng</label>
-                                <input type="text" id="contractNo" placeholder="01/2026/HĐNT/XT_AT" class="bg-yellow-50 font-mono font-bold text-red-600">
-                            </div>
-                            <div class="input-group">
-                                <label>Ngày ký</label>
-                                <input type="date" id="contractDate" class="bg-yellow-50">
-                            </div>
-                        </div>
-                        <div class="input-group">
-                            <label>Họ và Tên Khách Hàng</label>
-                            <input type="text" id="customerName" placeholder="NGUYỄN VĂN A" class="bg-yellow-50 uppercase font-semibold">
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="input-group">
-                                <label>Số CCCD</label>
-                                <input type="text" id="cccd" class="bg-yellow-50">
-                            </div>
-                            <div class="input-group">
-                                <label>Số điện thoại</label>
-                                <input type="text" id="phone" class="bg-yellow-50">
-                            </div>
-                        </div>
-                        <div class="input-group">
-                            <label>Địa chỉ thi công</label>
-                            <textarea id="address" rows="2" class="bg-yellow-50"></textarea>
-                        </div>
-                        <div class="input-group">
-                            <label>Tổng giá trị Hợp đồng (VNĐ)</label>
-                            <input type="number" id="totalValue" value="187600000" class="bg-yellow-50 font-bold text-blue-700 text-lg">
-                        </div>
+                <div class="card border-t-4 border-t-blue-500 space-y-4">
+                    <label class="block text-xs font-black text-blue-600 uppercase italic">2. Thông tin hợp đồng</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="input-group"><label>Số HĐ</label><input type="text" id="contractNo" value="01/2026/HĐNT/XT_AT"></div>
+                        <div class="input-group"><label>Ngày ký</label><input type="date" id="contractDate"></div>
                     </div>
+                    <div class="input-group"><label>Tên khách hàng</label><input type="text" id="customerName" placeholder="NGUYỄN VĂN A" class="uppercase font-bold"></div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="input-group"><label>CCCD</label><input type="text" id="cccd"></div>
+                        <div class="input-group"><label>Số điện thoại</label><input type="text" id="phone"></div>
+                    </div>
+                    <div class="input-group"><label>Địa chỉ</label><textarea id="address" rows="2"></textarea></div>
+                    <div class="input-group"><label>Tổng tiền (VNĐ)</label><input type="number" id="totalValue" value="187600000" class="text-blue-700 font-black text-lg"></div>
                 </div>
             </div>
 
-            <!-- CỘT 2: XỬ LÝ & XEM TRƯỚC THANH TOÁN -->
-            <div class="lg:col-span-7 space-y-6">
-                <div class="card bg-slate-900 text-white h-full relative overflow-hidden flex flex-col">
-                    <div class="flex justify-between items-center border-b border-slate-700 pb-4 mb-6">
-                        <h3 class="font-bold text-blue-400 uppercase text-xs tracking-widest">Kế hoạch thanh toán (20% - 80%)</h3>
-                        <button id="generateBtn" class="bg-green-600 hover:bg-green-500 px-6 py-2 rounded-lg uppercase font-bold text-sm transition-all shadow-lg flex items-center">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                            Tải File Word
+            <div class="space-y-6">
+                <div class="card bg-slate-900 text-white min-h-[400px] flex flex-col shadow-2xl">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Xem trước thanh toán</h2>
+                        <button id="generateBtn" class="bg-blue-600 hover:bg-blue-500 px-5 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center shadow-lg">
+                            XUẤT FILE WORD
                         </button>
                     </div>
 
-                    <div class="flex-grow space-y-4 overflow-y-auto pr-2">
-                        <!-- Tạm ứng 20% -->
-                        <div class="p-4 bg-slate-800 rounded-xl border-l-4 border-blue-500">
-                            <div class="flex justify-between items-start mb-2">
-                                <span class="text-[10px] font-bold text-blue-400 uppercase tracking-tighter">Đợt 1: Tạm ứng (20%)</span>
-                                <span id="viewS1Val" class="text-lg font-black text-white">0 <b class="text-blue-400 font-bold italic">VNĐ</b></span>
-                            </div>
-                            <p id="viewS1Text" class="text-xs text-slate-300 italic leading-relaxed">...</p>
+                    <div class="space-y-6 flex-grow">
+                        <div class="border-l-2 border-blue-500 pl-4">
+                            <p class="text-[10px] text-blue-400 font-bold uppercase mb-1">Đợt 1: Tạm ứng (20%)</p>
+                            <p id="viewS1Val" class="text-xl font-black">0 <span class="text-xs italic">VNĐ</span></p>
+                            <p id="viewS1Text" class="text-[10px] text-slate-400 italic mt-1 leading-relaxed">...</p>
                         </div>
 
-                        <!-- Hoàn thành 80% -->
-                        <div class="p-4 bg-slate-800 rounded-xl border-l-4 border-green-500">
-                            <div class="flex justify-between items-start mb-2">
-                                <span class="text-[10px] font-bold text-green-400 uppercase tracking-tighter">Đợt 2: Hoàn thành (80%)</span>
-                                <span id="viewS2Val" class="text-lg font-black text-white">0 <b class="text-green-400 font-bold italic">VNĐ</b></span>
-                            </div>
-                            <p id="viewS2Text" class="text-xs text-slate-300 italic leading-relaxed">...</p>
+                        <div class="border-l-2 border-green-500 pl-4">
+                            <p class="text-[10px] text-green-400 font-bold uppercase mb-1">Đợt 2: Hoàn thành (80%)</p>
+                            <p id="viewS2Val" class="text-xl font-black">0 <span class="text-xs italic">VNĐ</span></p>
+                            <p id="viewS2Text" class="text-[10px] text-slate-400 italic mt-1 leading-relaxed">...</p>
                         </div>
-
-                        <!-- Tổng cộng -->
-                        <div class="mt-8 pt-4 border-t border-slate-800">
-                            <div class="flex justify-between items-center">
-                                <span class="text-xs font-bold text-slate-400 uppercase">Tổng cộng:</span>
-                                <span id="viewTotalVal" class="text-2xl font-black text-yellow-400 underline decoration-double">0 <b class="text-white font-bold italic">VNĐ</b></span>
-                            </div>
-                            <p id="viewTotalText" class="text-right text-[10px] text-slate-500 italic mt-1 leading-relaxed">...</p>
+                        
+                        <div class="mt-auto pt-6 border-t border-slate-800">
+                            <p class="text-[10px] text-slate-500 uppercase font-bold mb-1 text-right">Tổng giá trị</p>
+                            <p id="viewTotalVal" class="text-3xl font-black text-yellow-400 text-right">0 <span class="text-xs text-white italic">VNĐ</span></p>
                         </div>
                     </div>
-
-                    <div id="statusMsg" class="mt-4 p-3 rounded text-center text-xs hidden font-bold"></div>
+                    <div id="statusMsg" class="mt-4 text-[10px] text-center p-2 rounded hidden"></div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        /**
-         * Hàm đọc số chuẩn tiếng Việt
-         * Loại bỏ "chẵn", xử lý tốt các số hàng triệu/nghìn lẻ
-         */
+        // MẬT KHẨU TRUY CẬP (Bạn có thể đổi số này thành bất cứ thứ gì bạn muốn)
+        const MY_PASSWORD = "123"; 
+
+        document.getElementById('loginBtn').onclick = function() {
+            const pin = document.getElementById('passInput').value;
+            if(pin === MY_PASSWORD) {
+                document.getElementById('authOverlay').classList.add('hidden');
+                const main = document.getElementById('mainContent');
+                main.classList.remove('hidden');
+                setTimeout(() => main.classList.add('opacity-100'), 50);
+            } else {
+                document.getElementById('errorMsg').classList.remove('hidden');
+                document.getElementById('passInput').value = "";
+            }
+        };
+
+        // Nhấn Enter để đăng nhập
+        document.getElementById('passInput').onkeydown = (e) => { if(e.key === "Enter") document.getElementById('loginBtn').click(); };
+
         function docSoTiengViet(number) {
             if (number === 0) return "Không đồng";
-            
             const units = ["", "nghìn", "triệu", "tỷ", "nghìn tỷ", "triệu tỷ"];
             const digits = ["không", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"];
-
             function readThreeDigits(n, isLastGroup) {
-                let hundred = Math.floor(n / 100);
-                let ten = Math.floor((n % 100) / 10);
-                let unit = n % 10;
-                let res = "";
-
-                if (hundred > 0) {
-                    res += digits[hundred] + " trăm ";
-                } else if (!isLastGroup) {
-                    res += "không trăm ";
-                }
-
-                if (ten > 1) {
-                    res += digits[ten] + " mươi ";
-                    if (unit === 1) res += "mốt";
-                    else if (unit === 5) res += "lăm";
-                    else if (unit > 0) res += digits[unit];
-                } else if (ten === 1) {
-                    res += "mười ";
-                    if (unit === 5) res += "lăm";
-                    else if (unit > 0) res += digits[unit];
-                } else if (unit > 0) {
-                    if (hundred > 0 || !isLastGroup) res += "linh ";
-                    res += digits[unit];
-                }
+                let h = Math.floor(n / 100), t = Math.floor((n % 100) / 10), u = n % 10, res = "";
+                if (h > 0) res += digits[h] + " trăm "; else if (!isLastGroup) res += "không trăm ";
+                if (t > 1) { res += digits[t] + " mươi "; if (u === 1) res += "mốt"; else if (u === 5) res += "lăm"; else if (u > 0) res += digits[u]; }
+                else if (t === 1) { res += "mười "; if (u === 5) res += "lăm"; else if (u > 0) res += digits[u]; }
+                else if (u > 0) { if (h > 0 || !isLastGroup) res += "linh "; res += digits[u]; }
                 return res;
             }
-
-            let str = Math.round(number).toString();
-            let groups = [];
-            while (str.length > 0) {
-                groups.push(str.substring(Math.max(0, str.length - 3), str.length));
-                str = str.substring(0, Math.max(0, str.length - 3));
-            }
-
+            let str = Math.round(number).toString(), groups = [];
+            while (str.length > 0) { groups.push(str.substring(Math.max(0, str.length - 3), str.length)); str = str.substring(0, Math.max(0, str.length - 3)); }
             let result = "";
             for (let i = groups.length - 1; i >= 0; i--) {
                 let g = parseInt(groups[i]);
-                if (g > 0) {
-                    let text = readThreeDigits(g, i === groups.length - 1);
-                    result += text + " " + units[i] + " ";
-                }
+                if (g > 0) result += readThreeDigits(g, i === groups.length - 1) + " " + units[i] + " ";
             }
-
             let final = result.trim().replace(/\s+/g, ' ');
             return final.charAt(0).toUpperCase() + final.slice(1) + " đồng.";
         }
 
-        function formatMoney(amount) {
-            return new Intl.NumberFormat('vi-VN').format(Math.round(amount));
-        }
+        const format = (n) => new Intl.NumberFormat('vi-VN').format(Math.round(n));
 
         function update() {
-            const totalVal = parseFloat(document.getElementById('totalValue').value) || 0;
-            const s1 = totalVal * 0.2;
-            const s2 = totalVal * 0.8;
-
-            document.getElementById('viewTotalVal').innerHTML = `${formatMoney(totalVal)} <b class="text-white italic">VNĐ</b>`;
-            document.getElementById('viewTotalText').innerText = docSoTiengViet(totalVal);
-            
-            document.getElementById('viewS1Val').innerHTML = `${formatMoney(s1)} <b class="text-blue-400 italic">VNĐ</b>`;
+            const total = parseFloat(document.getElementById('totalValue').value) || 0;
+            const s1 = total * 0.2, s2 = total * 0.8;
+            document.getElementById('viewTotalVal').innerHTML = `${format(total)} <span class="text-xs text-white italic font-bold">VNĐ</span>`;
+            document.getElementById('viewS1Val').innerHTML = `${format(s1)} <span class="text-xs text-blue-400 italic font-bold">VNĐ</span>`;
+            document.getElementById('viewS2Val').innerHTML = `${format(s2)} <span class="text-xs text-green-400 italic font-bold">VNĐ</span>`;
             document.getElementById('viewS1Text').innerText = docSoTiengViet(s1);
-            
-            document.getElementById('viewS2Val').innerHTML = `${formatMoney(s2)} <b class="text-green-400 italic">VNĐ</b>`;
             document.getElementById('viewS2Text').innerText = docSoTiengViet(s2);
         }
 
-        document.getElementById('generateBtn').addEventListener('click', function() {
+        document.getElementById('generateBtn').onclick = function() {
             const fileInput = document.getElementById('templateUpload');
             const status = document.getElementById('statusMsg');
-            
             if (!fileInput.files[0]) {
-                status.innerText = "⚠️ Vui lòng chọn file mẫu!";
-                status.className = "mt-4 p-3 rounded text-center text-xs bg-orange-600 text-white block";
+                status.innerText = "LỖI: CHƯA CHỌN FILE MẪU!";
+                status.className = "mt-4 text-[10px] text-center p-2 rounded bg-red-900 text-red-200 block";
                 return;
             }
-
-            status.innerText = "⏳ Đang tạo file...";
-            status.className = "mt-4 p-3 rounded text-center text-xs bg-blue-600 text-white block";
-
+            status.innerText = "ĐANG XỬ LÝ...";
+            status.className = "mt-4 text-[10px] text-center p-2 rounded bg-blue-900 text-blue-200 block";
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
-                    const content = e.target.result;
-                    const zip = new PizZip(content);
+                    const zip = new PizZip(e.target.result);
                     const doc = new window.docxtemplater(zip, { paragraphLoop: true, linebreaks: true });
-
-                    const totalVal = parseFloat(document.getElementById('totalValue').value) || 0;
-                    const s1 = totalVal * 0.2;
-                    const s2 = totalVal * 0.8;
-                    
-                    const dInput = document.getElementById('contractDate').value;
-                    const d = dInput ? new Date(dInput) : new Date();
-
+                    const total = parseFloat(document.getElementById('totalValue').value) || 0;
+                    const d = document.getElementById('contractDate').value ? new Date(document.getElementById('contractDate').value) : new Date();
                     doc.setData({
                         contractNo: document.getElementById('contractNo').value,
                         customerName: document.getElementById('customerName').value.toUpperCase(),
                         cccd: document.getElementById('cccd').value,
                         phone: document.getElementById('phone').value,
                         address: document.getElementById('address').value,
-                        shortDate: `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`,
-                        totalValue: `${formatMoney(totalVal)} VNĐ`,
-                        totalText: docSoTiengViet(totalVal),
-                        s1Value: `${formatMoney(s1)} VNĐ`,
-                        s1Text: docSoTiengViet(s1),
-                        s2Value: `${formatMoney(s2)} VNĐ`,
-                        s2Text: docSoTiengViet(s2),
+                        totalValue: `${format(total)} VNĐ`,
+                        totalText: docSoTiengViet(total),
+                        s1Value: `${format(total*0.2)} VNĐ`,
+                        s1Text: docSoTiengViet(total*0.2),
+                        s2Value: `${format(total*0.8)} VNĐ`,
+                        s2Text: docSoTiengViet(total*0.8),
                         day: String(d.getDate()).padStart(2, '0'),
                         month: String(d.getMonth() + 1).padStart(2, '0'),
                         year: d.getFullYear()
                     });
-
                     doc.render();
-                    const out = doc.getZip().generate({ type: "blob" });
-                    saveAs(out, `Hop_Dong_Solar_${document.getElementById('customerName').value || 'Moi'}.docx`);
-                    
-                    status.innerText = "✅ Hoàn thành!";
-                    status.className = "mt-4 p-3 rounded text-center text-xs bg-green-600 text-white block";
-                } catch (error) {
-                    status.innerText = "❌ Lỗi: " + error.message;
-                    status.className = "mt-4 p-3 rounded text-center text-xs bg-red-600 text-white block";
+                    saveAs(doc.getZip().generate({ type: "blob" }), `HD_Solar_${document.getElementById('customerName').value}.docx`);
+                    status.innerText = "THÀNH CÔNG!";
+                    status.className = "mt-4 text-[10px] text-center p-2 rounded bg-green-900 text-green-200 block";
+                } catch (err) {
+                    status.innerText = "LỖI XỬ LÝ FILE!";
+                    status.className = "mt-4 text-[10px] text-center p-2 rounded bg-red-900 text-red-200 block";
                 }
             };
             reader.readAsArrayBuffer(fileInput.files[0]);
-        });
+        };
 
-        window.onload = function() {
-            const ids = ['contractNo', 'customerName', 'cccd', 'phone', 'address', 'totalValue', 'contractDate'];
-            ids.forEach(id => document.getElementById(id).addEventListener('input', update));
+        window.onload = () => {
+            ['contractNo', 'customerName', 'cccd', 'phone', 'address', 'totalValue', 'contractDate'].forEach(id => document.getElementById(id).oninput = update);
             document.getElementById('contractDate').valueAsDate = new Date();
             update();
         };
