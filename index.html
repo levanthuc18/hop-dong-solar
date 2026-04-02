@@ -3,129 +3,381 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ thống Hợp đồng Solar - Bảo mật</title>
+    <title>SOLAR DOC V3.4 - PRO</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/pizzip@3.1.4/dist/pizzip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/docxtemplater@3.37.2/build/docxtemplater.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
-        .input-group label { @apply block text-[10px] font-bold text-gray-500 uppercase mb-1 tracking-wider; }
-        .input-group input, .input-group textarea { @apply w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-white text-sm shadow-sm; }
-        .card { @apply bg-white p-5 rounded-2xl shadow-sm border border-gray-100; }
-        #authOverlay { background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f8fafc; 
+            color: #1e293b;
+        }
+        .section-title {
+            font-weight: 900;
+            font-style: italic;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+            letter-spacing: -0.025em;
+        }
+        .line-orange { border-bottom: 4px solid #f97316; margin-bottom: 2rem; }
+        .line-blue { border-bottom: 4px solid #3b82f6; margin-bottom: 2rem; }
+        .line-purple { border-bottom: 4px solid #a855f7; margin-bottom: 2rem; }
+        
+        .form-label {
+            display: block;
+            font-size: 1.1rem;
+            color: #334155;
+            margin-bottom: 0.25rem;
+            font-weight: 700;
+        }
+        .form-input {
+            width: 100%;
+            padding: 0.4rem 0;
+            font-size: 1.1rem;
+            border: none;
+            border-bottom: 2px solid #e2e8f0;
+            outline: none;
+            font-weight: 800;
+            color: #0f172a;
+            background: transparent;
+            transition: all 0.2s;
+        }
+        .form-input:focus { border-bottom: 2px solid #3b82f6; color: #2563eb; }
+        .form-input.highlight-blue { color: #2563eb; font-weight: 900; font-size: 1.5rem; cursor: pointer; }
+        .form-input.uppercase-input { text-transform: uppercase; }
+        .form-input::placeholder { color: #cbd5e1; font-weight: 400; }
+
+        .preview-card {
+            background: #0f172a;
+            border-radius: 2rem;
+            padding: 2.5rem;
+            color: white;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-export {
+            background: #3b82f6;
+            color: white;
+            font-weight: 800;
+            padding: 0.85rem 1.75rem;
+            border-radius: 1rem;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.4);
+        }
+        .btn-export:hover { background: #2563eb; transform: translateY(-2px); box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.5); }
+        
+        .type-selector {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .type-btn {
+            flex: 1;
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            font-weight: 800;
+            text-align: center;
+            cursor: pointer;
+            border: 2px solid #e2e8f0;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+        }
+        .type-btn.active {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+            color: #2563eb;
+        }
+
+        #authOverlay { background: #020617; }
+
+        .file-status {
+            font-size: 10px;
+            font-weight: 900;
+            padding: 2px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        .file-ready { background: #dcfce7; color: #166534; }
+        .file-missing { background: #fee2e2; color: #991b1b; }
+        
+        .btn-delete {
+            color: #ef4444;
+            font-size: 10px;
+            font-weight: 900;
+            text-decoration: underline;
+            cursor: pointer;
+            margin-left: 10px;
+            text-transform: uppercase;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="bg-slate-50 min-h-screen">
 
-    <!-- MÀN HÌNH KHÓA MẬT KHẨU -->
-    <div id="authOverlay" class="fixed inset-0 z-50 flex items-center justify-center p-6">
-        <div class="bg-white p-8 rounded-3xl shadow-2xl max-w-sm w-full text-center">
-            <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
+    <!-- Modal xác nhận thiếu thông tin -->
+    <div id="confirmModal" class="modal-overlay">
+        <div class="bg-white p-8 rounded-[2rem] shadow-2xl max-w-md w-full mx-4">
+            <h3 class="text-xl font-black text-slate-900 mb-4 uppercase italic">Cảnh báo thiếu thông tin!</h3>
+            <p id="missingFieldsList" class="text-slate-600 text-sm mb-6 leading-relaxed font-semibold">Bạn chưa nhập đầy đủ các trường sau...</p>
+            <div class="flex gap-4">
+                <button onclick="closeModal()" class="flex-1 py-4 rounded-xl font-black text-xs uppercase bg-slate-100 text-slate-500 hover:bg-slate-200 transition-all">Quay lại sửa</button>
+                <button onclick="executeGenerate(true)" class="flex-1 py-4 rounded-xl font-black text-xs uppercase bg-orange-500 text-white hover:bg-orange-600 shadow-lg shadow-orange-200 transition-all text-center">Vẫn xuất file</button>
             </div>
-            <h2 class="text-xl font-black text-slate-800 mb-2 uppercase">Yêu cầu truy cập</h2>
-            <p class="text-slate-500 text-sm mb-6">Vui lòng nhập mật khẩu để sử dụng công cụ xuất hợp đồng.</p>
-            <input type="password" id="passInput" placeholder="Nhập mật khẩu..." class="w-full p-4 border border-slate-200 rounded-2xl mb-4 text-center text-lg focus:ring-2 focus:ring-blue-500 outline-none">
-            <button id="loginBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl transition-all shadow-lg">ĐĂNG NHẬP</button>
-            <p id="errorMsg" class="text-red-500 text-xs mt-4 hidden">Mật khẩu không chính xác!</p>
         </div>
     </div>
 
-    <!-- NỘI DUNG CHÍNH (ẨN KHI CHƯA NHẬP MK) -->
-    <div id="mainContent" class="max-w-5xl mx-auto hidden opacity-0 transition-opacity duration-700">
-        <header class="mb-6 flex justify-between items-center">
-            <h1 class="text-2xl font-black text-slate-800 uppercase tracking-tighter">Solar Doc v3.4</h1>
-            <button onclick="location.reload()" class="text-[10px] font-bold text-slate-400 border border-slate-300 px-3 py-1 rounded-full hover:bg-slate-200 transition-colors">ĐĂNG XUẤT</button>
-        </header>
+    <div id="authOverlay" class="fixed inset-0 z-50 flex items-center justify-center p-6">
+        <div class="bg-white p-10 rounded-[2.5rem] shadow-2xl max-w-sm w-full text-center">
+            <h2 class="text-2xl font-black mb-6 tracking-tight">XÁC THỰC</h2>
+            <input type="password" id="passInput" placeholder="••••" class="w-full p-5 border-2 rounded-2xl text-center text-3xl mb-6 outline-none focus:border-blue-500 tracking-widest bg-slate-50" onfocus="this.select()">
+            <button id="loginBtn" class="bg-blue-600 text-white w-full py-5 rounded-2xl font-black text-lg hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">ĐĂNG NHẬP</button>
+            <p id="errorMsg" class="text-red-500 text-xs mt-4 font-bold hidden uppercase">Mật khẩu không chính xác</p>
+        </div>
+    </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="space-y-6">
-                <div class="card border-t-4 border-t-orange-500">
-                    <label class="block text-xs font-black text-orange-600 uppercase mb-3 italic">1. Tải file Word mẫu (.docx)</label>
-                    <input type="file" id="templateUpload" accept=".docx" class="text-xs w-full file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-orange-50 file:text-orange-700 cursor-pointer">
+    <div id="mainContent" class="max-w-[1300px] mx-auto p-6 md:p-16 hidden">
+        <div class="flex justify-between items-center mb-16">
+            <h1 class="text-4xl font-black text-slate-900 tracking-tighter">SOLAR DOC <span class="text-blue-600 font-black">V3.4</span></h1>
+            <button onclick="location.reload()" class="text-[11px] font-black text-slate-400 border-2 border-slate-200 px-5 py-2 rounded-full uppercase hover:bg-white hover:text-slate-600 transition-all">Đăng xuất hệ thống</button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-20">
+            <div class="space-y-16">
+                <div>
+                    <h2 class="section-title text-orange-600">1. THIẾT LẬP FILE MẪU (TỰ ĐỘNG LƯU)</h2>
+                    <div class="line-orange"></div>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between p-4 bg-white rounded-2xl border-2 border-dashed border-slate-200">
+                            <div>
+                                <p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Mẫu Cá Nhân</p>
+                                <div class="flex items-center">
+                                    <span id="statusIndiv" class="file-status file-missing">Chưa có file</span>
+                                    <span id="delIndiv" class="btn-delete hidden" onclick="deleteTemplate('individual')">Xóa bỏ</span>
+                                </div>
+                            </div>
+                            <input type="file" id="fileIndiv" accept=".docx" class="hidden" onchange="handleFileSelect(this, 'statusIndiv')">
+                            <button onclick="document.getElementById('fileIndiv').click()" class="bg-slate-900 text-white px-4 py-2 rounded-lg text-[10px] font-black hover:bg-slate-800 uppercase">Chọn file</button>
+                        </div>
+
+                        <div class="flex items-center justify-between p-4 bg-white rounded-2xl border-2 border-dashed border-slate-200">
+                            <div>
+                                <p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Mẫu Công Ty</p>
+                                <div class="flex items-center">
+                                    <span id="statusComp" class="file-status file-missing">Chưa có file</span>
+                                    <span id="delComp" class="btn-delete hidden" onclick="deleteTemplate('company')">Xóa bỏ</span>
+                                </div>
+                            </div>
+                            <input type="file" id="fileComp" accept=".docx" class="hidden" onchange="handleFileSelect(this, 'statusComp')">
+                            <button onclick="document.getElementById('fileComp').click()" class="bg-slate-900 text-white px-4 py-2 rounded-lg text-[10px] font-black hover:bg-slate-800 uppercase">Chọn file</button>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="card border-t-4 border-t-blue-500 space-y-4">
-                    <label class="block text-xs font-black text-blue-600 uppercase italic">2. Thông tin hợp đồng</label>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="input-group"><label>Số HĐ</label><input type="text" id="contractNo" value="01/2026/HĐNT/XT_AT"></div>
-                        <div class="input-group"><label>Ngày ký</label><input type="date" id="contractDate"></div>
+                <div>
+                    <h2 class="section-title text-blue-600">2. THÔNG TIN CHI TIẾT HỢP ĐỒNG</h2>
+                    <div class="line-blue"></div>
+                    
+                    <div class="type-selector">
+                        <div id="typeIndividual" class="type-btn active" onclick="setCustomerType('individual')">Cá nhân</div>
+                        <div id="typeCompany" class="type-btn" onclick="setCustomerType('company')">Công ty</div>
                     </div>
-                    <div class="input-group"><label>Tên khách hàng</label><input type="text" id="customerName" placeholder="NGUYỄN VĂN A" class="uppercase font-bold"></div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="input-group"><label>CCCD</label><input type="text" id="cccd"></div>
-                        <div class="input-group"><label>Số điện thoại</label><input type="text" id="phone"></div>
+
+                    <div class="grid grid-cols-2 gap-x-12 gap-y-8">
+                        <div class="form-group">
+                            <label class="form-label">Số HĐ</label>
+                            <input type="text" id="contractNo" class="form-input" value="01/2026/HĐNT/XT_AT" onfocus="this.select()">
+                        </div>
+                        <div class="form-group text-right">
+                            <label class="form-label">Ngày ký kết</label>
+                            <input type="date" id="contractDate" class="form-input text-right">
+                        </div>
+
+                        <div class="form-group col-span-2">
+                            <label class="form-label" id="labelCustomerName">Tên khách hàng (Bên A)</label>
+                            <input type="text" id="customerName" class="form-input uppercase-input !text-blue-700" placeholder="NGUYỄN VĂN A" onfocus="this.select()">
+                        </div>
+
+                        <div class="form-group company-only hidden">
+                            <label class="form-label">Đại diện</label>
+                            <input type="text" id="representative" class="form-input" placeholder="Ông/Bà..." onfocus="this.select()">
+                        </div>
+                        <div class="form-group text-right company-only hidden">
+                            <label class="form-label">Chức vụ</label>
+                            <input type="text" id="position" class="form-input text-right" placeholder="Giám đốc/Chủ tịch..." onfocus="this.select()">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" id="labelTaxCccd">Số CCCD / MST</label>
+                            <input type="text" id="cccd" class="form-input" placeholder="Nhập số..." onfocus="this.select()">
+                        </div>
+                        <div class="form-group text-right">
+                            <label class="form-label">Số điện thoại</label>
+                            <input type="text" id="phone" class="form-input text-right" placeholder="09xxxxxxxx" onfocus="this.select()">
+                        </div>
+
+                        <div class="form-group col-span-2">
+                            <label class="form-label">Địa chỉ lắp đặt / Trụ sở</label>
+                            <textarea id="address" class="form-input" rows="1" placeholder="Nhập địa chỉ đầy đủ..." onfocus="this.select()"></textarea>
+                        </div>
+
+                        <div class="form-group col-span-2">
+                            <label class="form-label">Tổng giá trị hợp đồng (VNĐ)</label>
+                            <input type="text" id="totalValueDisplay" class="form-input highlight-blue" value="187.600.000" onfocus="this.select()">
+                        </div>
                     </div>
-                    <div class="input-group"><label>Địa chỉ</label><textarea id="address" rows="2"></textarea></div>
-                    <div class="input-group"><label>Tổng tiền (VNĐ)</label><input type="number" id="totalValue" value="187600000" class="text-blue-700 font-black text-lg"></div>
                 </div>
             </div>
 
-            <div class="space-y-6">
-                <!-- PHẦN ĐẶT TÊN FILE -->
-                <div class="card border-l-4 border-l-purple-500">
-                    <div class="input-group">
-                        <label>3. Tên file khi tải về (Không cần đuôi .docx)</label>
-                        <input type="text" id="customFileName" placeholder="Ví dụ: Hop_dong_anh_Thanh_Gia_Lam" class="bg-purple-50 border-purple-200">
-                        <p class="text-[9px] text-slate-400 mt-1 italic">* Để trống sẽ tự đặt theo tên khách hàng.</p>
-                    </div>
+            <div class="space-y-16">
+                <div>
+                    <h2 class="section-title text-purple-600">3. Tên File xuất ra</h2>
+                    <div class="line-purple"></div>
+                    <input type="text" id="customFileName" class="form-input !text-purple-600 !text-xl font-bold italic" placeholder="Ví dụ: Hop_dong_anh_Thanh" onfocus="this.select()">
                 </div>
 
-                <!-- XEM TRƯỚC -->
-                <div class="card bg-slate-900 text-white min-h-[350px] flex flex-col shadow-2xl">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Xem trước thanh toán</h2>
-                        <button id="generateBtn" class="bg-blue-600 hover:bg-blue-500 px-5 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center shadow-lg">
-                            XUẤT FILE WORD
-                        </button>
+                <div class="preview-card">
+                    <div class="flex justify-between items-center mb-12">
+                        <div>
+                            <h3 class="text-[11px] font-black text-slate-500 uppercase tracking-[0.3em] mb-1">Live Preview</h3>
+                            <p class="text-lg font-black text-white">CƠ CẤU THANH TOÁN</p>
+                        </div>
+                        <button id="generateBtn" class="btn-export">TẠO FILE WORD</button>
                     </div>
 
-                    <div class="space-y-6 flex-grow">
-                        <div class="border-l-2 border-blue-500 pl-4">
-                            <p class="text-[10px] text-blue-400 font-bold uppercase mb-1">Đợt 1: Tạm ứng (20%)</p>
-                            <p id="viewS1Val" class="text-xl font-black">0 <span class="text-xs italic">VNĐ</span></p>
-                            <p id="viewS1Text" class="text-[10px] text-slate-400 italic mt-1 leading-relaxed">...</p>
+                    <div class="space-y-12">
+                        <div>
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                                <span class="text-[11px] font-black text-blue-400 uppercase tracking-widest">Đợt 1: Tạm ứng (20%)</span>
+                            </div>
+                            <div class="flex items-baseline gap-3">
+                                <span id="viewS1Val" class="text-4xl font-black tracking-tighter">0</span>
+                                <span class="text-blue-500 font-black text-base italic">VNĐ</span>
+                            </div>
+                            <p id="viewS1Text" class="text-[11px] text-slate-400 italic mt-2 font-bold leading-relaxed">...</p>
                         </div>
 
-                        <div class="border-l-2 border-green-500 pl-4">
-                            <p class="text-[10px] text-green-400 font-bold uppercase mb-1">Đợt 2: Hoàn thành (80%)</p>
-                            <p id="viewS2Val" class="text-xl font-black">0 <span class="text-xs italic">VNĐ</span></p>
-                            <p id="viewS2Text" class="text-[10px] text-slate-400 italic mt-1 leading-relaxed">...</p>
+                        <div>
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                                <span class="text-[11px] font-black text-green-400 uppercase tracking-widest">Đợt 2: Nghiệm thu (80%)</span>
+                            </div>
+                            <div class="flex items-baseline gap-3">
+                                <span id="viewS2Val" class="text-4xl font-black tracking-tighter">0</span>
+                                <span class="text-green-500 font-black text-base italic">VNĐ</span>
+                            </div>
+                            <p id="viewS2Text" class="text-[11px] text-slate-400 italic mt-2 font-bold leading-relaxed">...</p>
                         </div>
-                        
-                        <div class="mt-auto pt-6 border-t border-slate-800">
-                            <p class="text-[10px] text-slate-500 uppercase font-bold mb-1 text-right">Tổng giá trị</p>
-                            <p id="viewTotalVal" class="text-3xl font-black text-yellow-400 text-right">0 <span class="text-xs text-white italic">VNĐ</span></p>
+
+                        <div class="pt-10 border-t border-slate-800 flex flex-col items-end">
+                            <span class="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">Tổng quyết toán</span>
+                            <div class="flex items-baseline gap-3">
+                                <span id="viewTotalVal" class="text-5xl font-black text-yellow-400 tracking-tighter">0</span>
+                                <span class="text-yellow-400 font-black text-lg italic">VNĐ</span>
+                            </div>
                         </div>
                     </div>
-                    <div id="statusMsg" class="mt-4 text-[10px] text-center p-2 rounded hidden"></div>
+                    
+                    <div id="statusMsg" class="absolute bottom-0 left-0 right-0 text-center text-[10px] font-black uppercase p-2 hidden overflow-auto max-h-20"></div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // MẬT KHẨU TRUY CẬP
-        const MY_PASSWORD = "thuchau"; 
+        const MY_PASSWORD = "123";
+        let currentType = 'individual';
+        let templateData = { individual: null, company: null };
 
-        document.getElementById('loginBtn').onclick = function() {
-            const pin = document.getElementById('passInput').value;
-            if(pin === MY_PASSWORD) {
-                document.getElementById('authOverlay').classList.add('hidden');
-                const main = document.getElementById('mainContent');
-                main.classList.remove('hidden');
-                setTimeout(() => main.classList.add('opacity-100'), 50);
+        function saveToStorage(type, arrayBuffer, fileName) {
+            const base64String = btoa(new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), ''));
+            localStorage.setItem(`solar_template_${type}`, base64String);
+            localStorage.setItem(`solar_name_${type}`, fileName);
+        }
+
+        function deleteTemplate(type) {
+            localStorage.removeItem(`solar_template_${type}`);
+            localStorage.removeItem(`solar_name_${type}`);
+            templateData[type] = null;
+            const inputId = type === 'individual' ? 'fileIndiv' : 'fileComp';
+            const statusEl = document.getElementById(type === 'individual' ? 'statusIndiv' : 'statusComp');
+            statusEl.innerText = "Chưa có file";
+            statusEl.className = "file-status file-missing";
+            document.getElementById(type === 'individual' ? 'delIndiv' : 'delComp').classList.add('hidden');
+            document.getElementById(inputId).value = "";
+        }
+
+        function loadFromStorage() {
+            ['individual', 'company'].forEach(type => {
+                const savedBase64 = localStorage.getItem(`solar_template_${type}`);
+                const savedName = localStorage.getItem(`solar_name_${type}`);
+                if (savedBase64) {
+                    const binaryString = atob(savedBase64);
+                    const bytes = new Uint8Array(binaryString.length);
+                    for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
+                    templateData[type] = bytes.buffer;
+                    const statusEl = document.getElementById(type === 'individual' ? 'statusIndiv' : 'statusComp');
+                    statusEl.innerText = "Đã lưu: " + savedName;
+                    statusEl.className = "file-status file-ready";
+                    document.getElementById(type === 'individual' ? 'delIndiv' : 'delComp').classList.remove('hidden');
+                }
+            });
+        }
+
+        function handleFileSelect(input, statusId) {
+            const statusEl = document.getElementById(statusId);
+            if (input.files && input.files[0]) {
+                const type = statusId === 'statusIndiv' ? 'individual' : 'company';
+                const fileName = input.files[0].name;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    templateData[type] = e.target.result;
+                    statusEl.innerText = "Sẵn sàng: " + fileName;
+                    statusEl.className = "file-status file-ready";
+                    document.getElementById(type === 'individual' ? 'delIndiv' : 'delComp').classList.remove('hidden');
+                    saveToStorage(type, e.target.result, fileName);
+                };
+                reader.readAsArrayBuffer(input.files[0]);
+            }
+        }
+
+        function setCustomerType(type) {
+            currentType = type;
+            document.getElementById('typeIndividual').classList.toggle('active', type === 'individual');
+            document.getElementById('typeCompany').classList.toggle('active', type === 'company');
+            document.querySelectorAll('.company-only').forEach(f => f.classList.toggle('hidden', type !== 'company'));
+            document.getElementById('labelTaxCccd').innerText = type === 'company' ? "Mã số thuế (MST)" : "Số CCCD";
+            document.getElementById('labelCustomerName').innerText = type === 'company' ? "Tên Công ty (Bên A)" : "Tên khách hàng (Bên A)";
+        }
+
+        document.getElementById('loginBtn').onclick = () => {
+            if(document.getElementById('passInput').value === MY_PASSWORD) {
+                document.getElementById('authOverlay').style.display = 'none';
+                document.getElementById('mainContent').classList.remove('hidden');
             } else {
                 document.getElementById('errorMsg').classList.remove('hidden');
-                document.getElementById('passInput').value = "";
             }
         };
-
-        document.getElementById('passInput').onkeydown = (e) => { if(e.key === "Enter") document.getElementById('loginBtn').click(); };
 
         function docSoTiengViet(number) {
             if (number === 0) return "Không đồng";
@@ -150,72 +402,106 @@
             return final.charAt(0).toUpperCase() + final.slice(1) + " đồng.";
         }
 
-        const format = (n) => new Intl.NumberFormat('vi-VN').format(Math.round(n));
+        const formatVND = (n) => new Intl.NumberFormat('vi-VN').format(Math.round(n));
+        const getRawValue = (str) => parseFloat(str.replace(/\./g, '')) || 0;
 
-        function update() {
-            const total = parseFloat(document.getElementById('totalValue').value) || 0;
-            const s1 = total * 0.2, s2 = total * 0.8;
-            document.getElementById('viewTotalVal').innerHTML = `${format(total)} <span class="text-xs text-white italic font-bold">VNĐ</span>`;
-            document.getElementById('viewS1Val').innerHTML = `${format(s1)} <span class="text-xs text-blue-400 italic font-bold">VNĐ</span>`;
-            document.getElementById('viewS2Val').innerHTML = `${format(s2)} <span class="text-xs text-green-400 italic font-bold">VNĐ</span>`;
-            document.getElementById('viewS1Text').innerText = docSoTiengViet(s1);
-            document.getElementById('viewS2Text').innerText = docSoTiengViet(s2);
+        function updatePreview() {
+            const total = getRawValue(document.getElementById('totalValueDisplay').value);
+            document.getElementById('viewTotalVal').innerText = formatVND(total);
+            document.getElementById('viewS1Val').innerText = formatVND(total * 0.2);
+            document.getElementById('viewS2Val').innerText = formatVND(total * 0.8);
+            document.getElementById('viewS1Text').innerText = docSoTiengViet(total * 0.2);
+            document.getElementById('viewS2Text').innerText = docSoTiengViet(total * 0.8);
         }
 
-        document.getElementById('generateBtn').onclick = function() {
-            const fileInput = document.getElementById('templateUpload');
-            const status = document.getElementById('statusMsg');
-            if (!fileInput.files[0]) {
-                status.innerText = "LỖI: CHƯA CHỌN FILE MẪU!";
-                status.className = "mt-4 text-[10px] text-center p-2 rounded bg-red-900 text-red-200 block";
-                return;
-            }
-            status.innerText = "ĐANG XỬ LÝ...";
-            status.className = "mt-4 text-[10px] text-center p-2 rounded bg-blue-900 text-blue-200 block";
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const zip = new PizZip(e.target.result);
-                    const doc = new window.docxtemplater(zip, { paragraphLoop: true, linebreaks: true });
-                    const total = parseFloat(document.getElementById('totalValue').value) || 0;
-                    const d = document.getElementById('contractDate').value ? new Date(document.getElementById('contractDate').value) : new Date();
-                    
-                    const customerNameRaw = document.getElementById('customerName').value || "Khach_hang";
-                    const fileNameInput = document.getElementById('customFileName').value.trim();
-                    const finalFileName = fileNameInput ? fileNameInput : `HD_Solar_${customerNameRaw}`;
+        // QUẢN LÝ MODAL
+        function closeModal() { document.getElementById('confirmModal').style.display = 'none'; }
+        
+        document.getElementById('generateBtn').onclick = () => {
+            const missing = [];
+            if (!document.getElementById('customerName').value) missing.push(currentType === 'company' ? "Tên Công ty" : "Tên Khách hàng");
+            if (!document.getElementById('cccd').value) missing.push(currentType === 'company' ? "Mã số thuế" : "Số CCCD");
+            if (!document.getElementById('phone').value) missing.push("Số điện thoại");
+            if (!document.getElementById('address').value) missing.push("Địa chỉ");
 
-                    doc.setData({
-                        contractNo: document.getElementById('contractNo').value,
-                        customerName: customerNameRaw.toUpperCase(),
-                        cccd: document.getElementById('cccd').value,
-                        phone: document.getElementById('phone').value,
-                        address: document.getElementById('address').value,
-                        totalValue: `${format(total)} VNĐ`,
-                        totalText: docSoTiengViet(total),
-                        s1Value: `${format(total*0.2)} VNĐ`,
-                        s1Text: docSoTiengViet(total*0.2),
-                        s2Value: `${format(total*0.8)} VNĐ`,
-                        s2Text: docSoTiengViet(total*0.8),
-                        day: String(d.getDate()).padStart(2, '0'),
-                        month: String(d.getMonth() + 1).padStart(2, '0'),
-                        year: d.getFullYear()
-                    });
-                    doc.render();
-                    saveAs(doc.getZip().generate({ type: "blob" }), `${finalFileName}.docx`);
-                    status.innerText = "THÀNH CÔNG!";
-                    status.className = "mt-4 text-[10px] text-center p-2 rounded bg-green-900 text-green-200 block";
-                } catch (err) {
-                    status.innerText = "LỖI XỬ LÝ FILE!";
-                    status.className = "mt-4 text-[10px] text-center p-2 rounded bg-red-900 text-red-200 block";
-                }
-            };
-            reader.readAsArrayBuffer(fileInput.files[0]);
+            if (missing.length > 0) {
+                document.getElementById('missingFieldsList').innerHTML = "Các thông tin sau đang trống: <br>• " + missing.join("<br>• ") + "<br><br>Bạn có muốn để trống chúng trong hợp đồng và tiếp tục xuất file không?";
+                document.getElementById('confirmModal').style.display = 'flex';
+            } else {
+                executeGenerate();
+            }
         };
 
+        function executeGenerate(force = false) {
+            if (force) closeModal();
+            const status = document.getElementById('statusMsg');
+            const currentTemplate = templateData[currentType];
+
+            if (!currentTemplate) {
+                status.innerText = `LỖI: THIẾU FILE MẪU ${currentType === 'individual' ? 'CÁ NHÂN' : 'CÔNG TY'}!`;
+                status.className = "absolute bottom-0 left-0 right-0 text-center text-[10px] font-black uppercase block text-red-500 bg-red-500/20 p-2";
+                status.classList.remove('hidden');
+                return;
+            }
+
+            status.innerText = "ĐANG XỬ LÝ DỮ LIỆU...";
+            status.className = "absolute bottom-0 left-0 right-0 text-center text-[10px] font-black uppercase block text-blue-400 bg-blue-500/20 p-2";
+            status.classList.remove('hidden');
+
+            try {
+                const zip = new PizZip(currentTemplate);
+                const doc = new window.docxtemplater(zip, { 
+                    paragraphLoop: true, linebreaks: true,
+                    parser: (tag) => ({ get: (scope) => (tag === "." ? scope : (scope[tag] || "")) })
+                });
+                
+                const total = getRawValue(document.getElementById('totalValueDisplay').value);
+                const d = document.getElementById('contractDate').value ? new Date(document.getElementById('contractDate').value) : new Date();
+                const nameRaw = document.getElementById('customerName').value || "Chua_nhap_ten";
+                const fileNameInput = document.getElementById('customFileName').value.trim();
+                const finalFileName = fileNameInput || `HD_Solar_${nameRaw.replace(/\s+/g, '_')}`;
+
+                doc.setData({
+                    contractNo: document.getElementById('contractNo').value,
+                    customerName: document.getElementById('customerName').value.toUpperCase(),
+                    representative: document.getElementById('representative').value,
+                    position: document.getElementById('position').value,
+                    cccd: document.getElementById('cccd').value,
+                    taxCode: document.getElementById('cccd').value,
+                    phone: document.getElementById('phone').value,
+                    address: document.getElementById('address').value,
+                    totalValue: formatVND(total) + " VNĐ",
+                    totalText: docSoTiengViet(total),
+                    s1Value: formatVND(total * 0.2) + " VNĐ",
+                    s1Text: docSoTiengViet(total * 0.2),
+                    s2Value: formatVND(total * 0.8) + " VNĐ",
+                    s2Text: docSoTiengViet(total * 0.8),
+                    day: String(d.getDate()).padStart(2, '0'),
+                    month: String(d.getMonth() + 1).padStart(2, '0'),
+                    year: d.getFullYear()
+                });
+
+                doc.render();
+                const out = doc.getZip().generate({ type: "blob", mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+                saveAs(out, `${finalFileName}.docx`);
+                
+                status.innerText = "XUẤT FILE THÀNH CÔNG!";
+                status.className = "absolute bottom-0 left-0 right-0 text-center text-[10px] font-black uppercase block text-green-400 bg-green-500/20 p-2";
+            } catch (error) {
+                status.innerText = "LỖI: " + error.message;
+                status.className = "absolute bottom-0 left-0 right-0 text-center text-[10px] font-black uppercase block text-red-500 bg-red-500/20 p-2";
+            }
+        }
+
         window.onload = () => {
-            ['contractNo', 'customerName', 'cccd', 'phone', 'address', 'totalValue', 'contractDate'].forEach(id => document.getElementById(id).oninput = update);
+            loadFromStorage();
             document.getElementById('contractDate').valueAsDate = new Date();
-            update();
+            document.getElementById('totalValueDisplay').addEventListener('input', (e) => {
+                let val = e.target.value.replace(/\./g, '');
+                if (!isNaN(val) && val !== "") e.target.value = new Intl.NumberFormat('vi-VN').format(val);
+                updatePreview();
+            });
+            updatePreview();
         };
     </script>
 </body>
